@@ -48,6 +48,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Deploy host is a Zen 4 AMD EPYC (fast BMI2). bmi2 is Stockfish's
+          # fastest common x86 target and is universally supported on GitHub
+          # runners, so the profile-build (PGO) bench step won't SIGILL.
+          build-args: |
+            SF_ARCH=x86-64-bmi2
 
       - name: Trigger Dokploy deployment
         run: |

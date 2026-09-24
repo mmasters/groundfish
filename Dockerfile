@@ -38,4 +38,11 @@ RUN mkdir -p /app/logs && chown -R app:app /app/logs
 USER app
 EXPOSE 8000
 
+# /readyz is 200 only while at least one Stockfish worker is alive, so an
+# engine pool that has drained (crashed workers that failed to respawn) marks
+# the container unhealthy and Swarm/compose restarts it instead of serving 503s
+# to every /move. python stdlib only — the slim image has no curl.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=4)"]
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
